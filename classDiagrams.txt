@@ -1,0 +1,65 @@
+@startuml
+
+DroneDispatcher --> Mission : 0..*
+FastMission --|> Mission
+SlowMission --|> Mission
+VerboseFastMission --|> Mission
+ClientCli --> DroneDispatcher
+ClientCli --> MissionFactory
+
+class DroneDispatcher {
+    -str _host 
+    -num _port
+    -tuple _drone
+    -obj _socket
+    -dict _missions
+    +__init__(str host, num port)
+    +__del__()
+    -_send_command()
+    +fly_mission(str mission_name)
+    +close_socket()
+    +get_mission_names()
+    +set_host()
+    +set_port()
+    +get_info()
+}
+
+class MissionFactory {
+
+    +create_missions(self, mission_data)
+
+}
+
+class Mission {
+    -str _name
+    -list _commands
+    +__init__(command_list)
+    +execute_commands(func send_method)
+    -_execute_command(str command, func send_method)
+}
+
+class FastMission {
+    -_execute_command(str command, func send_method)
+}
+
+class SlowMission {
+    -_execute_command(str command, func send_method)
+}
+
+class VerboseFastMission {
+    -_execute_command(str command, func send_method)
+}
+
+class ClientCli {
+    -num _default_host
+    -num _default_port
+    -obj _dispatcher
+
+    +init(str host=None, num drone_port=None)
+    -_list_missions()
+    -_get_missions()
+    +start_client()
+}
+
+
+@enduml
