@@ -1,11 +1,21 @@
 @startuml
 
+skinparam classAttributeIconSize 0
+
 DroneDispatcher --> Mission : 0..*
 FastMission --|> Mission
 SlowMission --|> Mission
 VerboseFastMission --|> Mission
-ClientCli --> DroneDispatcher
-ClientCli --> MissionFactory
+
+class Menuer {
+    +init(function_list)
+    -_list_missions()
+    -_load_missions()
+    -_set_new_value()
+    -_display_info()
+    -_print_options()
+    +display_menu()
+}
 
 class DroneDispatcher {
     -str _host 
@@ -24,9 +34,17 @@ class DroneDispatcher {
     +get_info()
 }
 
+class DroneMonitor {
+
+    +get_drone_status
+}
+
 class MissionFactory {
 
     +create_missions(self, mission_data)
+    +create_missions_from_file(self, file_path)
+    +_parse_json(self, json_data)
+    +_parse_csv(self, csv_data)
 
 }
 
@@ -50,16 +68,7 @@ class VerboseFastMission {
     -_execute_command(str command, func send_method)
 }
 
-class ClientCli {
-    -num _default_host
-    -num _default_port
-    -obj _dispatcher
 
-    +init(str host=None, num drone_port=None)
-    -_list_missions()
-    -_get_missions()
-    +start_client()
-}
 
 
 @enduml
