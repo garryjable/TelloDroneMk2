@@ -43,6 +43,7 @@ class MissionFactory {
 
     +create_missions(self, mission_data)
     +create_missions_from_file(self, file_path)
+    +_parse_py(self, py_data)
     +_parse_json(self, json_data)
     +_parse_csv(self, csv_data)
 

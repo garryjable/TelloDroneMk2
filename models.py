@@ -7,10 +7,12 @@ class DroneDispatcher:
     _host = "127.0.0.1"
     #    _host = '192.168.10.1'
     _port = 8889
+    _missions = {}
 
-    def __init__(self, missions, host=None, port=None):
+    def __init__(self, missions=None, host=None, port=None):
         local_host = ""
-        self._missions = missions
+        if missions:
+            self._missions = missions
         if host:
             self._host = host
         if port:
@@ -35,8 +37,11 @@ class DroneDispatcher:
     def set_port(self, new_port):
         self._port = new_port
 
-    def get_info(self):
-        return (self._host, self._port)
+    def get_port(self):
+        return self._port
+
+    def get_host(self):
+        return self._host
 
     def get_mission_names(self):
         names = []
@@ -44,7 +49,10 @@ class DroneDispatcher:
             names.append(key)
         return names
 
-    def fly_mission(self, name):
+    def add_missions(self):
+        return
+
+    def send_drone_on_mission(self, name):
         try:
             mission = self._missions[name]
             return mission.execute_commands(self._send_command)
@@ -58,6 +66,7 @@ class DroneDispatcher:
 
 
 class MissionFactory:
+
     def create_missions(self, mission_data):
         missions = {}
         for data_obj in mission_data.data:
@@ -70,6 +79,17 @@ class MissionFactory:
             missions[data_obj["name"]] = mission
         return missions
 
+    def create_missions_from_file(self, mission_data):
+        pass
+
+    def parse_json(self, mission_data):
+        pass
+
+    def parse_py(self, mission_data):
+        pass
+
+    def parse_csv(self, mission_data):
+        pass
 
 class Mission(ABC):
     _name = "default mission"
@@ -89,8 +109,7 @@ class Mission(ABC):
 
     @abstractmethod
     def _execute_command(self, command, send_method):
-        send_method(command)
-        time.sleep(0.01)
+        pass
 
 
 class FastMission(Mission):
@@ -111,52 +130,57 @@ class VerboseFastMission(Mission):
         time.sleep(3)
 
 
-class ClientCli:
-    _dispatcher = None
+class Menu:
 
-    def _init_dispatcher(self, missions, host=None, drone_port=None):
-        self._dispatcher = DroneDispatcher(missions, host, drone_port)
+    def __init__(self, methods):
+        self.menu = {
+                'help': lambda: self._print_options(),
+                'ls': lambda: self._list_missions(methods['ls']),
+                'load': lambda: self._list_missions(methods['load']),
+                'set port': lambda: self._set_new_value(methods['set port']),
+                'set host': lambda: self._set_new_value(methods['set host']),
+                'get port': lambda: self._display_info(methods['get port']),
+                'get host': lambda: self._display_info(methods['get host']),
+                }
 
-    def _get_missions(self):
-        import mission_data
-
-        mission_factory = MissionFactory()
-        return mission_factory.create_missions(mission_data)
-
-    def _list_missions(self):
+    def _list_missions(self, get_missions_method):
         print("Availible missions:")
-        for name in self._dispatcher.get_mission_names():
-            print("                " + name)
+        for name in get_missions_method():
+            print("                {}".format(name))
 
-    def start_client(self):
-        self._init_dispatcher(self._get_missions())
+    def _load_missions(self, load_missions_method):
+        print("Enter path to the file")
+        file_path = input("-> ")
+        load_missions_method(file_path)
+
+    def _set_new_value(self, set_method):
+        print("enter a new value")
+        new_value = input("-> ")
+        set_method(new_value)
+
+    def _display_info(self, display_info_method):
+        info = display_info_method()
+        print("current value: {}".format(info))
+
+    def _print_options(self):
+        print("enter 'q' to quit")
+        print("enter mission name to fly a mission")
+        print("enter 'ls' to list possible missions")
+        print("enter 'load' to load new missions ")
+        print("enter 'set port' to set new port")
+        print("enter 'set host' to set new host")
+        print("enter 'get port' to get current port value")
+        print("enter 'get host' to get current host value")
+
+    def display_menu(self):
         print(
             "Welcome to the tello drone client, enter 'help' for available options, enter 'q' to quit"
         )
         message = input("-> ")
         while message != "q":
-            if message == "help":
-                print("enter 'q' to quit")
-                print("enter mission name to fly a mission")
-                print("enter 'ls' to list possible missions")
-                print("enter 'set port' to set new port")
-                print("enter 'set host' to set new host")
-                print("enter 'info' to get current host and port data")
-            elif message == "ls":
-                self._list_missions()
-            elif message == "set host":
-                print("enter new host address")
-                message = input("-> ")
-                self._dispatcher.set_host(message)
-            elif message == "set port":
-                message = input("-> ")
-                print("enter new port")
-                self._dispatcher.set_port(message)
-            elif message == "info":
-                host, port = self.dispatcher.get_info(message)
-                print("current host: " + host)
-                print("current port: " + port)
-            else:
-                response = self._dispatcher.fly_mission(message)
+            try:
+                self.menu[message]()
+            except AttributeError:
+                response = self._dispatcher.send_drone_on_a_mission(message)
                 print(response)
             message = input("-> ")
