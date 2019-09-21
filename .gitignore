@@ -1,3 +1,6 @@
 __pycache__/
 *.log
 *.aux_
+*.pyc
+simulator/
+__MACOSX/
