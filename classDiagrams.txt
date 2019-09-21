@@ -2,7 +2,8 @@
 
 skinparam classAttributeIconSize 0
 
-DroneDispatcher --> Mission : 0..*
+MissionLibrary --> Mission : 0..*
+MissionFlyer --> Mission : 0..1
 FastMission --|> Mission
 SlowMission --|> Mission
 VerboseFastMission --|> Mission
@@ -22,21 +23,36 @@ class DroneDispatcher {
     -num _port
     -tuple _drone
     -obj _socket
-    -dict _missions
     +__init__(str host, num port)
     +__del__()
-    -_send_command()
-    +fly_mission(str mission_name)
+    -_send_message()
+    +send_drone_on_mission(obj mission)
     +close_socket()
-    +get_mission_names()
     +set_host()
     +set_port()
-    +get_info()
+    +get_port()
+    +set_port()
 }
 
 class DroneMonitor {
 
     +get_drone_status
+}
+
+class MissionFlyer {
+    
+    -__init__(self, func func=None)
+    +fly_mission(self, send_method)
+
+}
+
+class MissionLibrary {
+    -_missions # a dict of mission objs
+    -__init__(self, dict missions=None)
+    -get_mission(self, str name)
+    +get_mission_names()
+    +add_missions()
+
 }
 
 class MissionFactory {
