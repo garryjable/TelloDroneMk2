@@ -119,12 +119,12 @@ class Mission(ABC):
         self._name = name
 
     def execute(self, send_method): # template method
-        self._start_mission(send_method)
+        self._start(send_method)
         self._execute_commands(send_method)
-        self._end_mission(send_method)
+        self._end(send_method)
         return "you flew mission " + self._name
 
-    def _start_mission(self, send_method):
+    def _start(self, send_method):
         send_method('takeoff')
         send_method('command')
         send_method('command')
@@ -134,7 +134,7 @@ class Mission(ABC):
     def _execute_commands(self, send_method):
         pass
 
-    def _end_mission(self, send_method):
+    def _end(self, send_method):
         send_method('takeoff')
 
 

@@ -3,10 +3,11 @@
 skinparam classAttributeIconSize 0
 
 MissionLibrary --> Mission : 0..*
-MissionFlyer --> Mission : 0..1
-FastMission --|> Mission
-SlowMission --|> Mission
-VerboseFastMission --|> Mission
+DroneDispatcher *-- MissionFlyer
+MissionFlyer o-- Mission
+FastMission ..|> Mission
+SlowMission ..|> Mission
+VerboseFastMission ..|> Mission
 
 class Menuer {
     +init(function_list)
@@ -67,25 +68,23 @@ class MissionFactory {
 
 class Mission {
     -str _name
-    -list _commands
     +__init__(command_list)
-    +execute_commands(func send_method)
-    -_execute_command(str command, func send_method)
+    +execute(func send_method) # template method
+    -_start(func send_method) # required method
+    -_end(func send_method) # required method
+    -_execute_commands(func send_method) #abstract
 }
 
 class FastMission {
-    -_execute_command(str command, func send_method)
+    -_execute_commands(str command, func send_method)
 }
 
 class SlowMission {
-    -_execute_command(str command, func send_method)
+    -_execute_commands(str command, func send_method)
 }
 
 class VerboseFastMission {
-    -_execute_command(str command, func send_method)
+    -_execute_commands(str command, func send_method)
 }
-
-
-
 
 @enduml
