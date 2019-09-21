@@ -13,15 +13,11 @@ class test_drone_dispatcher(unittest.TestCase):
         self.host = "127.0.0.1"
         self.drone_port = 8889
         mission_factory = MissionFactory()
-        missions = mission_factory.create_missions(mission_data)
-        self.dispatcher = DroneDispatcher(missions, self.host, self.drone_port)
+        self.missions = mission_factory.create_missions(mission_data)
+        self.dispatcher = DroneDispatcher(self.host, self.drone_port)
 
     def tearDown(self):
         self.dispatcher.close_socket()
-
-    def test_get_mission_names(self):
-        mission_names = self.dispatcher.get_mission_names()
-        self.assertEqual(mission_names, ["1", "2", "3"])
 
     def test_get_set_info(self):
         new_host = 8888
@@ -37,41 +33,55 @@ class test_drone_dispatcher(unittest.TestCase):
         self.assertEqual(host, new_host)
         self.assertEqual(port, new_port)
 
-    def test_mission_one(self):
-        response = self.dispatcher.send_drone_on_mission("1")
+    def test_send_drone_on_mission(self):
+        response = self.dispatcher.send_drone_on_mission(self.missions["1"])
         self.assertEqual(response, "you flew mission 1")
 
-    def test_mission_two(self):
-        response = self.dispatcher.send_drone_on_mission("2")
-        self.assertEqual(response, "you flew mission 2")
-
-    def test_mission_three(self):
-        response = self.dispatcher.send_drone_on_mission("3")
-        self.assertEqual(response, "you flew mission 3")
-
-    def test_add_new_mission(self):
-
-    def test_add_new_missions(self):
 
 class test_missions(unittest.TestCase):
 
     def setUp(self):
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
-
-    def test_slow_mission(self):
-        print("stuff")
+        def dummy_send_command(message):
+            return message
+        self.send_command = lambda message: dummy_send_command(message)
 
     def test_fast_mission(self):
-        print("stuff")
+        response = self.missions['1'].execute(self.send_command)
+
+    def test_slow_mission(self):
+        response = self.missions['2'].execute(self.send_command)
 
     def test_verbose_fast_mission(self):
-        print("stuff")
+        response = self.missions['3'].execute(self.send_command)
 
 class test_mission_factory(unittest.TestCase):
 
     def test_create_missions_from_py(self):
+        print('stuff')
 
     def test_create_missions_from_json(self):
+        print('stuff')
 
     def test_create_missions_from_csv(self):
+        print('stuff')
+
+class test_mission_flyer(unittest.TestCase):
+
+    def test_fly_mission(self):
+        print('stuff')
+
+class test_mission_library(unittest.TestCase):
+
+    def setUp(self):
+        mission_factory = MissionFactory()
+        self.missions = mission_factory.create_missions(mission_data)
+        self.library = MissionLibrary(missions)
+
+    def test_get_mission_names(self):
+        mission_names = self.library.get_mission_names()
+        self.assertEqual(mission_names, ["1", "2", "3"])
+
+    def test_add_new_missions(self):
+        print('stuff')
