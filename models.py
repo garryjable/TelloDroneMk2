@@ -2,6 +2,8 @@ import socket
 import time
 from abc import ABC, abstractmethod
 import types
+import csv
+import json
 
 
 class DroneDispatcher:
@@ -69,8 +71,11 @@ class MissionLibrary:
         except KeyError as error:
             return "invalid mission"
 
-    def add_missions(self):
+    def add_missions(self, missions):
+        for key, val in missions.items():
+            self._missions[key] = val
         return
+
 
 class MissionFlyer:
 
@@ -84,7 +89,9 @@ class MissionFlyer:
     def fly_mission(self, send_method):
         pass
 
+
 class MissionFactory:
+
 
     def create_missions(self, mission_data):
         missions = {}
@@ -98,17 +105,47 @@ class MissionFactory:
             missions[data_obj["name"]] = mission
         return missions
 
-    def create_missions_from_file(self, mission_data):
-        pass
+    def create_missions_from_file(self, file_path):
+        extension = file_path.split('.')[-1]
+        if extension == 'csv':
+            return self.parse_csv(file_path)
+        elif extension == 'json':
+            return self.parse_json(file_path)
+        else:
+            print("file type could not be recognized")
+            return
 
-    def parse_json(self, mission_data):
-        pass
-
-    def parse_py(self, mission_data):
-        pass
+    def parse_json(self, file_path):
+        missions = {}
+        with open(file_path) as json_data:
+            mission_data = json.load(json_data)
+            missions = {}
+            for data_obj in mission_data['data']:
+                if data_obj["type"] == "fast":
+                    mission = FastMission(data_obj["commands"], data_obj["name"])
+                elif data_obj["type"] == "slow":
+                    mission = SlowMission(data_obj["commands"], data_obj["name"])
+                elif data_obj["type"] == "verbosefast":
+                    mission = VerboseFastMission(data_obj["commands"], data_obj["name"])
+                missions[data_obj["name"]] = mission
+            json_data.close()
+            return missions
 
     def parse_csv(self, mission_data):
-        pass
+        missions = {}
+        with open(mission_data, 'r') as csvfile:
+            mission_data_reader = csv.reader(csvfile, delimiter=',')
+            for row in mission_data_reader:
+                mission = None
+                if row[2].strip() == "fast":
+                    mission = FastMission(row[1].split('|'), row[0])
+                elif row[2].strip() == "slow":
+                    mission = SlowMission(row[1].split('|'), row[0])
+                elif row[2].strip() == "verbosefast":
+                    mission = VerboseFastMission(row[1].split('|'), row[0])
+                if mission:
+                    missions[row[0]] = mission
+        return missions
 
 class Mission(ABC):
     _name = "default mission"
@@ -166,13 +203,14 @@ class Menu:
         self.menu = {
                 'help': lambda: self._print_options(),
                 'ls': lambda: self._list_missions(methods['ls']),
-                'load': lambda: self._list_missions(methods['load']),
+                'load': lambda: self._load_missions(methods['load'], methods['save missions']),
                 'set port': lambda: self._set_new_value(methods['set port']),
                 'set host': lambda: self._set_new_value(methods['set host']),
                 'get port': lambda: self._display_info(methods['get port']),
                 'get host': lambda: self._display_info(methods['get host']),
                 'get host': lambda: self._display_info(methods['get host']),
-                'mission': lambda message: methods['mission'](message),
+                'mission': lambda name: methods['mission'](name),
+                'get mission': methods['get mission'],
                 }
 
     def _list_missions(self, get_missions_method):
@@ -180,10 +218,11 @@ class Menu:
         for name in get_missions_method():
             print("                {}".format(name))
 
-    def _load_missions(self, load_missions_method):
+    def _load_missions(self, load_missions_method, save_missions_method):
         print("Enter path to the file")
         file_path = input("-> ")
-        load_missions_method(file_path)
+        missions = load_missions_method(file_path)
+        save_missions_method(missions)
 
     def _set_new_value(self, set_method):
         print("enter a new value")
@@ -213,7 +252,7 @@ class Menu:
             try:
                 self.menu[message]()
             except KeyError:
-                mission = self.menu['load mission'](message)
+                mission = self.menu['get mission'](message)
                 response = self.menu['mission'](mission)
                 print(response)
             message = input("-> ")

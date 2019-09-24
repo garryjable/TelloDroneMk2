@@ -1,4 +1,4 @@
-name, commands, type
-1, [up 50,left 50,right 100,left 50, down 50], slow
-2, [up 50,right 50,left 100,right 50, down 50], fast
-3, [up 25,right 25,left 50,right 25, down 25], verbosefast
+name,commands,type
+1,up 50|left 50|right 100|left 50|down 50,slow
+2,up 50|right 50|left 100|right 50|down 50,fast
+3,up 25|right 25|left 50|right 25|down 25,verbosefast
