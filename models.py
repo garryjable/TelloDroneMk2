@@ -9,7 +9,7 @@ import json
 class DroneDispatcher:
     _host = "127.0.0.1"
     #    _host = '192.168.10.1'
-    _port = 8889
+    _port = 8891
 
     def __init__(self, host=None, port=None):
         local_host = ""
@@ -88,6 +88,57 @@ class MissionFlyer:
 
     def fly_mission(self, send_method):
         pass
+
+
+class DroneMonitor:
+    _approx_location = (0,0,0)
+    _last_status = {
+            "mid": None,
+            "x": None,
+            "y": None,
+            "z": None,
+            "pitch": None,
+            "roll": None,
+            "yaw": None,
+            "vgx": None,
+            "vgy": None,
+            "vgz": None,
+            "templ": None,
+            "temph": None,
+            "tof": None,
+            "h": None,
+            "bat": None,
+            "baro": None,
+            "time": None,
+            "agx": None,
+            "agy": None,
+            "agz": None,
+            }
+
+    def __init__(self):
+        host = "127.0.0.1"
+        port = 8890
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind((host, port))
+
+    def listen_to_port(self, message):
+        while True:
+            data, addr = s.recvfrom(1024)
+            print("message from: " + str(addr))
+            print("from connect user: " + str(data.decode()))
+            data = str(data.decode())
+        s.close()
+
+    def parse_data(self, data):
+        print("parse the data")
+
+    def change_location(self, message):
+        print('changing location')
+        print('get_status')
+
+    def get_approx_location(self, message):
+        print('get_approx_location')
 
 
 class MissionFactory:
