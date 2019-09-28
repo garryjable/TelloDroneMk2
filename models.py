@@ -90,59 +90,68 @@ class MissionFlyer:
         pass
 
 
-class DroneMonitor:
-    _approx_location = (0,0,0)
-    _last_status = {
-            "mid": None,
-            "x": None,
-            "y": None,
-            "z": None,
-            "pitch": None,
-            "roll": None,
-            "yaw": None,
-            "vgx": None,
-            "vgy": None,
-            "vgz": None,
-            "templ": None,
-            "temph": None,
-            "tof": None,
-            "h": None,
-            "bat": None,
-            "baro": None,
-            "time": None,
-            "agx": None,
-            "agy": None,
-            "agz": None,
+class DroneStatusStore:
+    _latest_status = {
+            "pitch": 0,
+            "roll": 0,
+            "yaw": 0,
+            "vgx": 0,
+            "vgy": 0,
+            "vgz": 0,
+            "templ": 0,
+            "temph": 0,
+            "tof": 0,
+            "h": 0,
+            "bat": 100,
+            "baro": 0.00,
+            "time": 0,
+            "agx": 0.00,
+            "agy": 0.00,
+            "agz": 0.00,
             }
 
-    def __init__(self):
-        host = "127.0.0.1"
-        port = 8890
+    def get_latest_status(self):
+        status_message = ""
+        for key, val in self._latest_status.items():
+            if isinstance(val, int):
+                val = "%d" % val
+            elif isinstance(val, float):
+                val = "%.2f" % val
+            status_message += "{}:{};".format(key, val)
+        status_message += "\r\n"
+        return status_message
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.bind((host, port))
+    def update_status(self, new_status):
+        key_val_pairs = new_status.split(';')
+        for pair in key_val_pairs:
+            try:
+                key, val = pair.split(':')
+                try: 
+                    self._latest_status[key] = val
+                except KeyError:
+                    print("bad")
+                    pass
+            except ValueError:
+                print("terrible")
+                pass
 
-    def listen_to_port(self, message):
-        while True:
-            data, addr = s.recvfrom(1024)
-            print("message from: " + str(addr))
-            print("from connect user: " + str(data.decode()))
-            data = str(data.decode())
-        s.close()
+    def get_status_dict(self):
+        return self._latest_status
 
-    def parse_data(self, data):
-        print("parse the data")
-
-    def change_location(self, message):
-        print('changing location')
-        print('get_status')
-
-    def get_approx_location(self, message):
-        print('get_approx_location')
+    def update_status_with_dict(self, new_status):
+        try:
+            for key, val in new_status.items():
+                try: 
+                    self._latest_status[key] = val
+                except KeyError:
+                    print("bad")
+                    pass
+        except ValueError:
+            print("terrible")
+            pass
 
 
 class MissionFactory:
-
 
     def create_missions(self, mission_data):
         missions = {}
@@ -231,21 +240,21 @@ class FastMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(3)
+            time.sleep(.3)
 
 
 class SlowMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(5)
+            time.sleep(.5)
 
 
 class VerboseFastMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             print(send_method(command))
-            time.sleep(3)
+            time.sleep(.3)
 
 
 class Menu:

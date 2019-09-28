@@ -5,6 +5,8 @@ skinparam classAttributeIconSize 0
 MissionLibrary --> Mission : 0..*
 DroneDispatcher *-- MissionFlyer
 MissionFlyer o-- Mission
+DroneStatusStore --* MissionFlyer
+DroneStatusStore --* DroneSimulator 
 FastMission ..|> Mission
 SlowMission ..|> Mission
 VerboseFastMission ..|> Mission
@@ -35,9 +37,14 @@ class DroneDispatcher {
     +set_port()
 }
 
-class DroneMonitor {
+class DroneStatusStore {
+    -last_status
 
-    +get_drone_status
+    +get_latest_status
+    +update_status
+    +update_status_with_dict
+    +get_status_dict
+
 }
 
 class MissionFlyer {
