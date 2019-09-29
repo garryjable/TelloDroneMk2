@@ -1,13 +1,12 @@
 # import test_server
-from models import DroneDispatcher
-from models import MissionFactory
+from models import MissionFactory, MissionLibrary, DroneStatusStore, DroneDispatcher
 import unittest
 import socket
 import time
 import mission_data
 
 
-class test_drone_dispatcher(unittest.TestCase):
+class DroneDispatcherTests(unittest.TestCase):
 
     def setUp(self):
         self.host = "127.0.0.1"
@@ -38,7 +37,7 @@ class test_drone_dispatcher(unittest.TestCase):
         self.assertEqual(response, "you flew mission 1")
 
 
-class test_missions(unittest.TestCase):
+class MissionsTests(unittest.TestCase):
 
     def setUp(self):
         mission_factory = MissionFactory()
@@ -56,7 +55,7 @@ class test_missions(unittest.TestCase):
     def test_verbose_fast_mission(self):
         response = self.missions['3'].execute(self.send_command)
 
-class test_mission_factory(unittest.TestCase):
+class MissionFactoryTests(unittest.TestCase):
 
     def test_create_missions_from_py(self):
         print('stuff')
@@ -67,21 +66,74 @@ class test_mission_factory(unittest.TestCase):
     def test_create_missions_from_csv(self):
         print('stuff')
 
-class test_mission_flyer(unittest.TestCase):
+class MissionFlyerTests(unittest.TestCase):
 
     def test_fly_mission(self):
         print('stuff')
 
-class test_mission_library(unittest.TestCase):
+class MissionLibraryTests(unittest.TestCase):
 
     def setUp(self):
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
-        self.library = MissionLibrary(missions)
+        self.library = MissionLibrary(self.missions)
 
     def test_get_mission_names(self):
         mission_names = self.library.get_mission_names()
-        self.assertEqual(mission_names, ["1", "2", "3"])
+        self.assertEqual(mission_names, list(self.missions.keys()))
+
+    def test_get_missions(self):
+        name = '1'
+        mission = self.library.get_mission(name)
+        self.assertEqual(mission, self.missions[name])
 
     def test_add_new_missions(self):
-        print('stuff')
+        mission_factory = MissionFactory()
+        more_missions = mission_factory.create_missions(mission_data)
+        self.library.add_missions(more_missions)
+
+class droneStatusStoreTests(unittest.TestCase):
+
+    def setUp(self):
+        self.initial_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:0.00;time:0;agx:0.00;agy:0.00;agz:0.00;\r\n"
+        self.initial_status_dict = {
+            "pitch": 0,
+            "roll": 0,
+            "yaw": 0,
+            "vgx": 0,
+            "vgy": 0,
+            "vgz": 0,
+            "templ": 0,
+            "temph": 0,
+            "tof": 0,
+            "h": 0,
+            "bat": 100,
+            "baro": 0.00,
+            "time": 0,
+            "agx": 0.00,
+            "agy": 0.00,
+            "agz": 0.00,
+        }
+        self.status_store= DroneStatusStore()
+
+    def test_get_latest_status(self):
+        latest_status = self.status_store.get_latest_status()
+        self.assertEqual(latest_status, self.initial_status)
+
+    def test_update_status(self):
+        new_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:1.00;time:3;agx:0.00;agy:0.00;agz:0.00;\r\n"
+        self.status_store.update_status(new_status)
+        latest_status = self.status_store.get_latest_status()
+        self.assertEqual(new_status, latest_status)
+
+    def test_get_status_dict(self):
+        status_dict = self.status_store.get_status_dict()
+        self.assertEqual(status_dict, self.initial_status_dict)
+
+    def test_update_status_with_dict(self):
+        status_dict = self.status_store.get_status_dict()
+        status_dict['h'] = 100
+        self.status_store.update_status_with_dict(status_dict)
+        latest_status_dict = self.status_store.get_status_dict()
+        self.assertEqual(latest_status_dict, status_dict)
+

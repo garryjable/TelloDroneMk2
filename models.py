@@ -9,7 +9,7 @@ import json
 class DroneDispatcher:
     _host = "127.0.0.1"
     #    _host = '192.168.10.1'
-    _port = 8889
+    _port = 8891
 
     def __init__(self, host=None, port=None):
         local_host = ""
@@ -90,8 +90,68 @@ class MissionFlyer:
         pass
 
 
-class MissionFactory:
+class DroneStatusStore:
+    _latest_status = {
+            "pitch": 0,
+            "roll": 0,
+            "yaw": 0,
+            "vgx": 0,
+            "vgy": 0,
+            "vgz": 0,
+            "templ": 0,
+            "temph": 0,
+            "tof": 0,
+            "h": 0,
+            "bat": 100,
+            "baro": 0.00,
+            "time": 0,
+            "agx": 0.00,
+            "agy": 0.00,
+            "agz": 0.00,
+            }
 
+    def get_latest_status(self):
+        status_message = ""
+        for key, val in self._latest_status.items():
+            if isinstance(val, int):
+                val = "%d" % val
+            elif isinstance(val, float):
+                val = "%.2f" % val
+            status_message += "{}:{};".format(key, val)
+        status_message += "\r\n"
+        return status_message
+
+    def update_status(self, new_status):
+        key_val_pairs = new_status.split(';')
+        for pair in key_val_pairs:
+            try:
+                key, val = pair.split(':')
+                try: 
+                    self._latest_status[key] = val
+                except KeyError:
+                    print("bad")
+                    pass
+            except ValueError:
+                print("terrible")
+                pass
+
+    def get_status_dict(self):
+        return self._latest_status
+
+    def update_status_with_dict(self, new_status):
+        try:
+            for key, val in new_status.items():
+                try: 
+                    self._latest_status[key] = val
+                except KeyError:
+                    print("bad")
+                    pass
+        except ValueError:
+            print("terrible")
+            pass
+
+
+class MissionFactory:
 
     def create_missions(self, mission_data):
         missions = {}
@@ -180,21 +240,21 @@ class FastMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(3)
+            time.sleep(.3)
 
 
 class SlowMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(5)
+            time.sleep(.5)
 
 
 class VerboseFastMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             print(send_method(command))
-            time.sleep(3)
+            time.sleep(.3)
 
 
 class Menu:
