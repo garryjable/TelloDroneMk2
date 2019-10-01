@@ -1,5 +1,6 @@
 # import test_server
 from models import MissionFactory, MissionLibrary, DroneStatusStore, DroneDispatcher
+from simulator import DroneSimulator
 import unittest
 import socket
 import time
@@ -7,8 +8,9 @@ import mission_data
 
 
 class DroneDispatcherTests(unittest.TestCase):
-
     def setUp(self):
+        drone_simulator = DroneSimulator()
+        drone_simulator.listen_for_command()
         self.host = "127.0.0.1"
         self.drone_port = 8889
         mission_factory = MissionFactory()
@@ -38,42 +40,47 @@ class DroneDispatcherTests(unittest.TestCase):
 
 
 class MissionsTests(unittest.TestCase):
-
     def setUp(self):
+        drone_simulator = DroneSimulator()
+        drone_simulator.listen_for_command()
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
+
         def dummy_send_command(message):
             return message
+
         self.send_command = lambda message: dummy_send_command(message)
 
     def test_fast_mission(self):
-        response = self.missions['1'].execute(self.send_command)
+        response = self.missions["1"].execute(self.send_command)
 
     def test_slow_mission(self):
-        response = self.missions['2'].execute(self.send_command)
+        response = self.missions["2"].execute(self.send_command)
 
     def test_verbose_fast_mission(self):
-        response = self.missions['3'].execute(self.send_command)
+        response = self.missions["3"].execute(self.send_command)
+
 
 class MissionFactoryTests(unittest.TestCase):
-
     def test_create_missions_from_py(self):
-        print('stuff')
+        print("stuff")
 
     def test_create_missions_from_json(self):
-        print('stuff')
+        print("stuff")
 
     def test_create_missions_from_csv(self):
-        print('stuff')
+        print("stuff")
+
 
 class MissionFlyerTests(unittest.TestCase):
-
     def test_fly_mission(self):
-        print('stuff')
+        print("stuff")
+
 
 class MissionLibraryTests(unittest.TestCase):
-
     def setUp(self):
+        drone_simulator = DroneSimulator()
+        drone_simulator.listen_for_command()
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
         self.library = MissionLibrary(self.missions)
@@ -83,7 +90,7 @@ class MissionLibraryTests(unittest.TestCase):
         self.assertEqual(mission_names, list(self.missions.keys()))
 
     def test_get_missions(self):
-        name = '1'
+        name = "1"
         mission = self.library.get_mission(name)
         self.assertEqual(mission, self.missions[name])
 
@@ -92,9 +99,11 @@ class MissionLibraryTests(unittest.TestCase):
         more_missions = mission_factory.create_missions(mission_data)
         self.library.add_missions(more_missions)
 
-class droneStatusStoreTests(unittest.TestCase):
 
+class droneStatusStoreTests(unittest.TestCase):
     def setUp(self):
+        drone_simulator = DroneSimulator()
+        drone_simulator.listen_for_command()
         self.initial_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:0.00;time:0;agx:0.00;agy:0.00;agz:0.00;\r\n"
         self.initial_status_dict = {
             "pitch": 0,
@@ -114,7 +123,7 @@ class droneStatusStoreTests(unittest.TestCase):
             "agy": 0.00,
             "agz": 0.00,
         }
-        self.status_store= DroneStatusStore()
+        self.status_store = DroneStatusStore()
 
     def test_get_latest_status(self):
         latest_status = self.status_store.get_latest_status()
@@ -132,8 +141,7 @@ class droneStatusStoreTests(unittest.TestCase):
 
     def test_update_status_with_dict(self):
         status_dict = self.status_store.get_latest_status_dict()
-        status_dict['h'] = 100
+        status_dict["h"] = 100
         self.status_store.update_latest_status_with_dict(status_dict)
         latest_status_dict = self.status_store.get_latest_status_dict()
         self.assertEqual(latest_status_dict, status_dict)
-

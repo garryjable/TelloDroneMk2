@@ -44,13 +44,16 @@ class DroneDispatcher:
         return self._host
 
     def send_drone_on_mission(self, mission):
-        mission_flyer = MissionFlyer(lambda self, send_method: mission.execute(send_method)) # passing a mission flying strategy to a flyer
+        mission_flyer = MissionFlyer(
+            lambda self, send_method: mission.execute(send_method)
+        )  # passing a mission flying strategy to a flyer
         return mission_flyer.execute(self._send_message)
 
-    def _send_message(self, message): # method that handles sending messages to drone
+    def _send_message(self, message):  # method that handles sending messages to drone
         self._socket.sendto(message.encode(), self._drone)
         data, addr = self._socket.recvfrom(1024)
         return "Recieved from server: " + str(data.decode())
+
 
 class MissionLibrary:
     _missions = {}
@@ -78,13 +81,12 @@ class MissionLibrary:
 
 
 class MissionFlyer:
-
     def __init__(self, func=None):
         if func is not None:
             self.execute = types.MethodType(func, self)
-            self.name = '{}_{}'.format(self.__class__.__name__, func.__name__)
+            self.name = "{}_{}".format(self.__class__.__name__, func.__name__)
         else:
-            self.name = '{}_default'.format(self.__class__.__name__)
+            self.name = "{}_default".format(self.__class__.__name__)
 
     def fly_mission(self, send_method):
         pass
@@ -92,23 +94,23 @@ class MissionFlyer:
 
 class DroneStatusStore:
     _latest_status = {
-            "pitch": 0,
-            "roll": 0,
-            "yaw": 0,
-            "vgx": 0,
-            "vgy": 0,
-            "vgz": 0,
-            "templ": 0,
-            "temph": 0,
-            "tof": 0,
-            "h": 0,
-            "bat": 100,
-            "baro": 0.00,
-            "time": 0,
-            "agx": 0.00,
-            "agy": 0.00,
-            "agz": 0.00,
-            }
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0,
+        "vgx": 0,
+        "vgy": 0,
+        "vgz": 0,
+        "templ": 0,
+        "temph": 0,
+        "tof": 0,
+        "h": 0,
+        "bat": 100,
+        "baro": 0.00,
+        "time": 0,
+        "agx": 0.00,
+        "agy": 0.00,
+        "agz": 0.00,
+    }
 
     def get_latest_status(self):
         status_message = ""
@@ -122,11 +124,11 @@ class DroneStatusStore:
         return status_message
 
     def update_latest_status(self, new_status):
-        key_val_pairs = new_status.split(';')
+        key_val_pairs = new_status.split(";")
         for pair in key_val_pairs:
             try:
-                key, val = pair.split(':')
-                try: 
+                key, val = pair.split(":")
+                try:
                     self._latest_status[key] = val
                 except KeyError:
                     print("bad")
@@ -141,7 +143,7 @@ class DroneStatusStore:
     def update_latest_status_with_dict(self, new_status):
         try:
             for key, val in new_status.items():
-                try: 
+                try:
                     self._latest_status[key] = val
                 except KeyError:
                     print("bad")
@@ -152,7 +154,6 @@ class DroneStatusStore:
 
 
 class MissionFactory:
-
     def create_missions(self, mission_data):
         missions = {}
         for data_obj in mission_data.data:
@@ -166,10 +167,10 @@ class MissionFactory:
         return missions
 
     def create_missions_from_file(self, file_path):
-        extension = file_path.split('.')[-1]
-        if extension == 'csv':
+        extension = file_path.split(".")[-1]
+        if extension == "csv":
             return self.parse_csv(file_path)
-        elif extension == 'json':
+        elif extension == "json":
             return self.parse_json(file_path)
         else:
             print("file type could not be recognized")
@@ -180,7 +181,7 @@ class MissionFactory:
         with open(file_path) as json_data:
             mission_data = json.load(json_data)
             missions = {}
-            for data_obj in mission_data['data']:
+            for data_obj in mission_data["data"]:
                 if data_obj["type"] == "fast":
                     mission = FastMission(data_obj["commands"], data_obj["name"])
                 elif data_obj["type"] == "slow":
@@ -193,19 +194,20 @@ class MissionFactory:
 
     def parse_csv(self, mission_data):
         missions = {}
-        with open(mission_data, 'r') as csvfile:
-            mission_data_reader = csv.reader(csvfile, delimiter=',')
+        with open(mission_data, "r") as csvfile:
+            mission_data_reader = csv.reader(csvfile, delimiter=",")
             for row in mission_data_reader:
                 mission = None
                 if row[2].strip() == "fast":
-                    mission = FastMission(row[1].split('|'), row[0])
+                    mission = FastMission(row[1].split("|"), row[0])
                 elif row[2].strip() == "slow":
-                    mission = SlowMission(row[1].split('|'), row[0])
+                    mission = SlowMission(row[1].split("|"), row[0])
                 elif row[2].strip() == "verbosefast":
-                    mission = VerboseFastMission(row[1].split('|'), row[0])
+                    mission = VerboseFastMission(row[1].split("|"), row[0])
                 if mission:
                     missions[row[0]] = mission
         return missions
+
 
 class Mission(ABC):
     _name = "default mission"
@@ -215,63 +217,63 @@ class Mission(ABC):
         self._commands = command_list
         self._name = name
 
-    def execute(self, send_method): # template method
+    def execute(self, send_method):  # template method
         self._start(send_method)
         self._execute_commands(send_method)
         self._end(send_method)
         return "you flew mission " + self._name
 
     def _start(self, send_method):
-        send_method('takeoff')
-        send_method('command')
-        send_method('command')
-        send_method('command')
+        send_method("takeoff")
+        send_method("command")
+        send_method("command")
+        send_method("command")
 
     @abstractmethod
     def _execute_commands(self, send_method):
         pass
 
     def _end(self, send_method):
-        send_method('takeoff')
+        send_method("takeoff")
 
 
 class FastMission(Mission):
-
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(.3)
+            time.sleep(0.3)
 
 
 class SlowMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             send_method(command)
-            time.sleep(.5)
+            time.sleep(0.5)
 
 
 class VerboseFastMission(Mission):
     def _execute_commands(self, send_method):
         for command in self._commands:
             print(send_method(command))
-            time.sleep(.3)
+            time.sleep(0.3)
 
 
 class Menu:
-
     def __init__(self, methods):
         self.menu = {
-                'help': lambda: self._print_options(),
-                'ls': lambda: self._list_missions(methods['ls']),
-                'load': lambda: self._load_missions(methods['load'], methods['save missions']),
-                'set port': lambda: self._set_new_value(methods['set port']),
-                'set host': lambda: self._set_new_value(methods['set host']),
-                'get port': lambda: self._display_info(methods['get port']),
-                'get host': lambda: self._display_info(methods['get host']),
-                'get host': lambda: self._display_info(methods['get host']),
-                'mission': lambda name: methods['mission'](name),
-                'get mission': methods['get mission'],
-                }
+            "help": lambda: self._print_options(),
+            "ls": lambda: self._list_missions(methods["ls"]),
+            "load": lambda: self._load_missions(
+                methods["load"], methods["save missions"]
+            ),
+            "set port": lambda: self._set_new_value(methods["set port"]),
+            "set host": lambda: self._set_new_value(methods["set host"]),
+            "get port": lambda: self._display_info(methods["get port"]),
+            "get host": lambda: self._display_info(methods["get host"]),
+            "get host": lambda: self._display_info(methods["get host"]),
+            "mission": lambda name: methods["mission"](name),
+            "get mission": methods["get mission"],
+        }
 
     def _list_missions(self, get_missions_method):
         print("Availible missions:")
@@ -312,7 +314,7 @@ class Menu:
             try:
                 self.menu[message]()
             except KeyError:
-                mission = self.menu['get mission'](message)
-                response = self.menu['mission'](mission)
+                mission = self.menu["get mission"](message)
+                response = self.menu["mission"](mission)
                 print(response)
             message = input("-> ")
