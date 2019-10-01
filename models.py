@@ -121,7 +121,7 @@ class DroneStatusStore:
         status_message += "\r\n"
         return status_message
 
-    def update_status(self, new_status):
+    def update_latest_status(self, new_status):
         key_val_pairs = new_status.split(';')
         for pair in key_val_pairs:
             try:
@@ -135,10 +135,10 @@ class DroneStatusStore:
                 print("terrible")
                 pass
 
-    def get_status_dict(self):
+    def get_latest_status_dict(self):
         return self._latest_status
 
-    def update_status_with_dict(self, new_status):
+    def update_latest_status_with_dict(self, new_status):
         try:
             for key, val in new_status.items():
                 try: 

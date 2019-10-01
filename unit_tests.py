@@ -122,18 +122,18 @@ class droneStatusStoreTests(unittest.TestCase):
 
     def test_update_status(self):
         new_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:1.00;time:3;agx:0.00;agy:0.00;agz:0.00;\r\n"
-        self.status_store.update_status(new_status)
+        self.status_store.update_latest_status(new_status)
         latest_status = self.status_store.get_latest_status()
         self.assertEqual(new_status, latest_status)
 
     def test_get_status_dict(self):
-        status_dict = self.status_store.get_status_dict()
+        status_dict = self.status_store.get_latest_status_dict()
         self.assertEqual(status_dict, self.initial_status_dict)
 
     def test_update_status_with_dict(self):
-        status_dict = self.status_store.get_status_dict()
+        status_dict = self.status_store.get_latest_status_dict()
         status_dict['h'] = 100
-        self.status_store.update_status_with_dict(status_dict)
-        latest_status_dict = self.status_store.get_status_dict()
+        self.status_store.update_latest_status_with_dict(status_dict)
+        latest_status_dict = self.status_store.get_latest_status_dict()
         self.assertEqual(latest_status_dict, status_dict)
 
