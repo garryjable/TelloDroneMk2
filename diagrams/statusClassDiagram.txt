@@ -1,0 +1,38 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+DroneSimulator --* DroneStatusStore : 0..1
+DroneMonitor --* DroneStatusStore : 0..1
+DroneDispatcher --* MissionFlyer
+DroneDispatcher --* DroneMonitor
+
+class DroneSimulator {
+    -str _host 
+    -num _port
+    -tuple _drone
+    -obj _socket
+    +__init__(str host, num port)
+    +__del__()
+    +close_socket()
+    +listen_for_command()
+    +handle_command()
+}
+
+class DroneMonitor {
+    -str _host 
+    -num _port
+    -tuple _drone
+    -obj _socket
+    +listen_for_status()
+}
+
+class DroneStatusStore {
+    -_latest_status
+    +get_latest_status
+    +update_latest_status
+    +get_latest_status_dict
+    +update_latest_status_dict
+}
+
+
+@enduml

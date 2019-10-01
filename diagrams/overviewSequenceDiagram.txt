@@ -1,0 +1,40 @@
+v@startuml
+
+hide footbox
+participant DroneDispatcher
+participant MissionFlyer
+participant DroneSimulator
+participant DroneStatusStore
+
+
+DroneDispatcher -> DroneSimulator: "Command" Request
+alt unsuccessful case
+    DroneDispatcher <-- DroneSimulator: Garbage Response
+    loop 2 more times
+        DroneDispatcher -> DroneSimulator: "Command" Request
+        DroneDispatcher <-- DroneSimulator: Garbage Response
+    end
+    else successful case [break loop]
+    DroneDispatcher <-- DroneSimulator: Ok Response
+end
+
+create MissionFlyer
+DroneDispatcher -> MissionFlyer: initialize flyer with mission
+activate MissionFlyer
+DroneDispatcher -> MissionFlyer: execute mission request
+loop while mission has next command
+    MissionFlyer -> DroneDispatcher: Next command
+    group drone communication
+        DroneDispatcher -> DroneSimulator: command request
+        group status handling
+            DroneSimulator -> DroneStatusStore: update status request
+            DroneSimulator <-- DroneStatusStore: updated status response
+        end
+        DroneDispatcher <-- DroneSimulator: ok response
+    end
+end
+DroneDispatcher <-- MissionFlyer: Mission Success response
+deactivate MissionFlyer
+destroy MissionFlyer
+
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+
+DroneDispatcher -> DroneMonitor: check status request
+DroneDispatcher <-- DroneMonitor: status response
+alt status all clear
+DroneDispatcher -> DroneSimulator: command request
+DroneDispatcher <-- DroneSimulator: ok response
+else something isn't right
+DroneDispatcher -> DroneSimulator: remediary command request
+DroneDispatcher <-- DroneSimulator: ok response
+end
+
+loop forever while program runs
+DroneMonitor -> DroneSimulator: listen for Status update from simulator
+DroneMonitor <-- DroneSimulator: status update
+
+
+DroneMonitor -> DroneStatusStore: update status 
+DroneMonitor <-- DroneStatusStore: new status 
+end
+
+@enduml
