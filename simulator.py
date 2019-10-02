@@ -1,24 +1,23 @@
 import socket
-import asyncio
+import threading
 
 
 class DroneSimulator:
-
-    commands = {
-        "command": lambda params: handleCommand(params),
-        "takeoff": lambda params: handleTakeoff(params),
-        "land": lambda params: handleLand(params),
-        "up": lambda params: handleUp(params),
-        "right": lambda params: handleRight(params),
-        "down": lambda params: handleDown(params),
-        "left": lambda params: handleLeft(params),
-    }
 
     #    _host = "127.0.0.1"
     #    _host = '192.168.10.1'
     #    _port = 8891
 
     def __init__(self, host=None, port=None):
+        self.commands = {
+            "command": lambda params: self.handleCommand(params),
+            "takeoff": lambda params: self.handleTakeoff(params),
+            "land": lambda params: self.handleLand(params),
+            "up": lambda params: self.handleUp(params),
+            "right": lambda params: self.handleRight(params),
+            "down": lambda params: self.handleDown(params),
+            "left": lambda params: self.handleLeft(params),
+        }
 
         # from test server
         host = "127.0.0.1"
@@ -26,6 +25,7 @@ class DroneSimulator:
 
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.bind((host, port))
+        self._socket.settimeout(15)
 
         # from drone dispatcher
         #        local_host = ""
@@ -44,34 +44,57 @@ class DroneSimulator:
     def __del__(self):
         try:
             self._socket.close()
-        except AttributeError as e:
+        except AttributeError:
             return
 
-    async def listen_for_command(self):
-        print("Server Started")
-        while True:
+    def start_listening(self):
+        self.thread = threading.Thread(target=self.listen_for_command)
+        self.thread.start()
+        return self.thread
+
+    def listen_for_command(self):
+        while getattr(self.thread, "do_run", True):
             data, addr = self._socket.recvfrom(1024)
             print("message from: " + str(addr))
             print("from connect user: " + str(data.decode()))
             data = str(data.decode())
             args = data.split(" ")
+            print('here be args')
+            print(args)
             try:
-                response = commands[args[0]](args)
-            except:
+                response = self.commands[args[0]](args)
+            except AttributeError:
                 response = "error"
             print("sending: " + str(response))
             self._socket.sendto(data.encode(), addr)
-        self._socket.close()
-        print("listening")
 
+    def stop_listening(self):
+        self.thread.do_run = False
+        self.thread.join()
 
-#    def handle_command(self, mission):
-#        print("handling")
+    def handleCommand(self, args):
+        return "ok"
 
-#    def _send_response(self, message): # method that handles sending messages to drone
-#        self._socket.sendto(message.encode(), self._drone)
-#        data, addr = self._socket.recvfrom(1024)
-#        return "Recieved from server: " + str(data.decode())
+    def handleTakeoff(self, args):
+        return "ok"
+
+    def handleLand(self, args):
+        return "ok"
+
+    def handleUp(self, args):
+        return "ok"
+
+    def handleRight(self, args):
+        return "ok"
+
+    def handleDown(self, args):
+        return "ok"
+
+    def handleLeft(self, args):
+        return "ok"
+
+    def handleLeft(self, args):
+        return "ok"
 
 
 # class DroneMonitor:

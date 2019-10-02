@@ -9,16 +9,11 @@ import mission_data
 
 class DroneDispatcherTests(unittest.TestCase):
     def setUp(self):
-        drone_simulator = DroneSimulator()
-        drone_simulator.listen_for_command()
         self.host = "127.0.0.1"
         self.drone_port = 8889
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
         self.dispatcher = DroneDispatcher(self.host, self.drone_port)
-
-    def tearDown(self):
-        self.dispatcher.close_socket()
 
     def test_get_set_info(self):
         new_host = 8888
@@ -35,14 +30,25 @@ class DroneDispatcherTests(unittest.TestCase):
         self.assertEqual(port, new_port)
 
     def test_send_drone_on_mission(self):
-        response = self.dispatcher.send_drone_on_mission(self.missions["1"])
-        self.assertEqual(response, "you flew mission 1")
+        try:
+            self.drone_simulator = DroneSimulator()
+            self.drone_simulator.start_listening()
+            response = self.dispatcher.send_drone_on_mission(self.missions["1"])
+            self.assertEqual(response, "you flew mission 1")
+            print("waiting for drone simulator to time out")
+            for i in range(15,0, -1):
+                print(i)
+                time.sleep(1)
+            self.drone_simulator.stop_listening()
+        except socket.timeout:
+            self.drone_simulator.close_socket()
+
+    def tearDown(self):
+        self.dispatcher.close_socket()
 
 
 class MissionsTests(unittest.TestCase):
     def setUp(self):
-        drone_simulator = DroneSimulator()
-        drone_simulator.listen_for_command()
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
 
@@ -79,8 +85,6 @@ class MissionFlyerTests(unittest.TestCase):
 
 class MissionLibraryTests(unittest.TestCase):
     def setUp(self):
-        drone_simulator = DroneSimulator()
-        drone_simulator.listen_for_command()
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
         self.library = MissionLibrary(self.missions)
@@ -102,8 +106,6 @@ class MissionLibraryTests(unittest.TestCase):
 
 class droneStatusStoreTests(unittest.TestCase):
     def setUp(self):
-        drone_simulator = DroneSimulator()
-        drone_simulator.listen_for_command()
         self.initial_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:0.00;time:0;agx:0.00;agy:0.00;agz:0.00;\r\n"
         self.initial_status_dict = {
             "pitch": 0,
