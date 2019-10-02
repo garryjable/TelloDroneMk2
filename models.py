@@ -17,9 +17,9 @@ class DroneDispatcher:
             self._host = host
         if port:
             self._port = port
-        self._drone = (self._host, self._port)
+        self._drone = (self._host, 8889)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._socket.bind((local_host, self._port + 1))
+        self._socket.bind((local_host, self._port))
         return
 
     def close_socket(self):
@@ -93,24 +93,26 @@ class MissionFlyer:
 
 
 class DroneStatusStore:
-    _latest_status = {
-        "pitch": 0,
-        "roll": 0,
-        "yaw": 0,
-        "vgx": 0,
-        "vgy": 0,
-        "vgz": 0,
-        "templ": 0,
-        "temph": 0,
-        "tof": 0,
-        "h": 0,
-        "bat": 100,
-        "baro": 0.00,
-        "time": 0,
-        "agx": 0.00,
-        "agy": 0.00,
-        "agz": 0.00,
-    }
+
+    def __init__(self, missions=None):
+        self._latest_status = {
+            "pitch": 0,
+            "roll": 0,
+            "yaw": 0,
+            "vgx": 0,
+            "vgy": 0,
+            "vgz": 0,
+            "templ": 0,
+            "temph": 0,
+            "tof": 0,
+            "h": 0,
+            "bat": 100,
+            "baro": 0.00,
+            "time": 0,
+            "agx": 0.00,
+            "agy": 0.00,
+            "agz": 0.00,
+        }
 
     def get_latest_status(self):
         status_message = ""

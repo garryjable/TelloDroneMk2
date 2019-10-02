@@ -1,5 +1,5 @@
 # import test_server
-from models import MissionFactory, MissionLibrary, DroneStatusStore, DroneDispatcher
+from models import MissionFactory, MissionLibrary, DroneStatusStore, DroneDispatcher, SlowMission, FastMission, VerboseFastMission
 from simulator import DroneSimulator
 import unittest
 import socket
@@ -10,7 +10,7 @@ import mission_data
 class DroneDispatcherTests(unittest.TestCase):
     def setUp(self):
         self.host = "127.0.0.1"
-        self.drone_port = 8889
+        self.drone_port = 8891
         mission_factory = MissionFactory()
         self.missions = mission_factory.create_missions(mission_data)
         self.dispatcher = DroneDispatcher(self.host, self.drone_port)
@@ -30,18 +30,16 @@ class DroneDispatcherTests(unittest.TestCase):
         self.assertEqual(port, new_port)
 
     def test_send_drone_on_mission(self):
-        try:
-            self.drone_simulator = DroneSimulator()
-            self.drone_simulator.start_listening()
-            response = self.dispatcher.send_drone_on_mission(self.missions["1"])
-            self.assertEqual(response, "you flew mission 1")
-            print("waiting for drone simulator to time out")
-            for i in range(15,0, -1):
-                print(i)
-                time.sleep(1)
-            self.drone_simulator.stop_listening()
-        except socket.timeout:
-            self.drone_simulator.close_socket()
+        self.drone_simulator = DroneSimulator()
+        self.drone_simulator.start_listening()
+        response = self.dispatcher.send_drone_on_mission(self.missions["1"])
+        self.assertEqual(response, "you flew mission 1")
+        print("waiting for drone simulator to time out")
+        for i in range(15,0, -1):
+            print(i)
+            time.sleep(1)
+        self.drone_simulator.stop_listening()
+        self.drone_simulator.close_socket()
 
     def tearDown(self):
         self.dispatcher.close_socket()
@@ -68,8 +66,20 @@ class MissionsTests(unittest.TestCase):
 
 
 class MissionFactoryTests(unittest.TestCase):
+
     def test_create_missions_from_py(self):
-        print("stuff")
+        mission_factory = MissionFactory()
+        missions = mission_factory.create_missions(mission_data)
+        index = 0
+        for mission_name, mission in missions.items():
+            self.assertEqual(mission_name, mission_data.data[index]['name'])
+            if isinstance(mission, SlowMission):
+                mission_type = 'slow'
+            elif isinstance(mission, FastMission):
+                mission_type = 'fast'
+            elif isinstance(mission, VerboseFastMission):
+                mission_type = 'fastverbose'
+            index += 1
 
     def test_create_missions_from_json(self):
         print("stuff")

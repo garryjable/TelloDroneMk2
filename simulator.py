@@ -1,14 +1,12 @@
 import socket
 import threading
+from models import DroneStatusStore
+import time
 
 
 class DroneSimulator:
 
-    #    _host = "127.0.0.1"
-    #    _host = '192.168.10.1'
-    #    _port = 8891
-
-    def __init__(self, host=None, port=None):
+    def __init__(self):
         self.commands = {
             "command": lambda params: self.handleCommand(params),
             "takeoff": lambda params: self.handleTakeoff(params),
@@ -18,24 +16,20 @@ class DroneSimulator:
             "down": lambda params: self.handleDown(params),
             "left": lambda params: self.handleLeft(params),
         }
-
-        # from test server
+        self.speed = 10
         host = "127.0.0.1"
         port = 8889
+        status_host = "0.0.0.0"
+        status_port = 8890
+        self.status_store = DroneStatusStore()
 
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.bind((host, port))
         self._socket.settimeout(15)
 
-        # from drone dispatcher
-        #        local_host = ""
-        #        if host:
-        #            self._host = host
-        #        if port:
-        #            self._port = port
-        #        self._drone = (self._host, self._port)
-        #        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #        self._socket.bind((local_host, self._port + 1))
+        self._status_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._status_socket.bind((status_host, status_port))
+        self._status_socket.settimeout(15)
         return
 
     def close_socket(self):
@@ -54,19 +48,25 @@ class DroneSimulator:
 
     def listen_for_command(self):
         while getattr(self.thread, "do_run", True):
-            data, addr = self._socket.recvfrom(1024)
-            print("message from: " + str(addr))
-            print("from connect user: " + str(data.decode()))
-            data = str(data.decode())
-            args = data.split(" ")
-            print('here be args')
-            print(args)
             try:
-                response = self.commands[args[0]](args)
-            except AttributeError:
-                response = "error"
-            print("sending: " + str(response))
-            self._socket.sendto(data.encode(), addr)
+                data, addr = self._socket.recvfrom(1024)
+            except socket.timeout:
+                print("sending: " + "landing")
+                return
+            else:
+                print("message from: " + str(addr))
+                print("from connect user: " + str(data.decode()))
+                data = str(data.decode())
+                args = data.split(" ")
+                print('here be args')
+                print(args)
+                try:
+                    response = self.commands[args[0]](args)
+                except AttributeError as e:
+                    print(e)
+                    response = "error"
+                print("sending: " + str(response))
+                self._socket.sendto(data.encode(), addr)
 
     def stop_listening(self):
         self.thread.do_run = False
@@ -76,24 +76,51 @@ class DroneSimulator:
         return "ok"
 
     def handleTakeoff(self, args):
-        return "ok"
+        distance = 50
+        axis = 'vgz'
+        direction = 1
+        return self.handleBaseMovement(axis, direction, distance)
 
     def handleLand(self, args):
-        return "ok"
+        status = self.status_store.get_latest_status_dict()
+        distance = int(status['h'])
+        axis = 'vgz'
+        direction = -1
+        return self.handleBaseMovement(axis, direction, distance)
 
     def handleUp(self, args):
-        return "ok"
+        distance = int(args[1])
+        axis = 'vgz'
+        direction = 1
+        return self.handleBaseMovement(axis, direction, distance)
 
     def handleRight(self, args):
-        return "ok"
+        distance = int(args[1])
+        axis = 'vgx'
+        direction = 1
+        return self.handleBaseMovement(axis, direction, distance)
 
     def handleDown(self, args):
-        return "ok"
+        distance = int(args[1])
+        axis = 'vgz'
+        direction = -1
+        return self.handleBaseMovement(axis, direction, distance)
 
     def handleLeft(self, args):
-        return "ok"
+        distance = int(args[1])
+        axis = 'vgx'
+        direction = -1
+        return self.handleBaseMovement(axis, direction, distance)
 
-    def handleLeft(self, args):
+    def handleBaseMovement(self, axis, direction, distance):
+        status = self.status_store.get_latest_status_dict()
+        status[axis] = direction * self.speed
+        self.status_store.update_latest_status_with_dict(status)
+        time.sleep(distance/ self.speed)
+        status[axis] = 0
+        if axis == 'vgz':
+            status['h'] += direction * distance
+        self.status_store.update_latest_status_with_dict(status)
         return "ok"
 
 
