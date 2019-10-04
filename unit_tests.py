@@ -32,6 +32,7 @@ class DroneDispatcherTests(unittest.TestCase):
     def test_send_drone_on_mission(self):
         self.drone_simulator = DroneSimulator()
         self.drone_simulator.start_listening()
+        self.drone_simulator.start_reporting()
         response = self.dispatcher.send_drone_on_mission(self.missions["1"])
         self.assertEqual(response, "you flew mission 1")
         print("waiting for drone simulator to time out")
@@ -39,6 +40,7 @@ class DroneDispatcherTests(unittest.TestCase):
             print(i)
             time.sleep(1)
         self.drone_simulator.stop_listening()
+        self.drone_simulator.stop_reporting()
         self.drone_simulator.close_socket()
 
     def tearDown(self):

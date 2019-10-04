@@ -22,24 +22,46 @@ class DroneSimulator:
         status_host = "0.0.0.0"
         status_port = 8890
         self.status_store = DroneStatusStore()
+        self.thread = None
+        self.report_thread = None
+        self.status_addr = (status_host, status_port)
 
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.bind((host, port))
         self._socket.settimeout(15)
 
         self._status_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._status_socket.bind((status_host, status_port))
+        self._status_socket.bind(self.status_addr)
         self._status_socket.settimeout(15)
+
+        self.start_reporting()
+        
         return
 
     def close_socket(self):
         self._socket.close()
 
     def __del__(self):
+        self.stop_reporting()
         try:
             self._socket.close()
         except AttributeError:
             return
+
+    def start_reporting(self):
+        self.report_thread = threading.Thread(target=self.report_status)
+        self.report_thread.start()
+        return self.report_thread
+
+    def report_status(self):
+        while getattr(self.report_thread, "do_run", True):
+            latest_status = self.status_store.get_latest_status()
+            self._socket.sendto(latest_status.encode(), self.status_addr)
+            time.sleep(.1)
+
+    def stop_reporting(self):
+        self.report_thread.do_run = False
+        self.report_thread.join()
 
     def start_listening(self):
         self.thread = threading.Thread(target=self.listen_for_command)
