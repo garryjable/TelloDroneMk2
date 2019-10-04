@@ -6,7 +6,7 @@ import time
 
 class DroneSimulator:
 
-    def __init__(self):
+    def __init__(self, commands=None):
         self.commands = {
             "command": lambda params: self.handleCommand(params),
             "takeoff": lambda params: self.handleTakeoff(params),
@@ -16,6 +16,8 @@ class DroneSimulator:
             "down": lambda params: self.handleDown(params),
             "left": lambda params: self.handleLeft(params),
         }
+        if commands: 
+            self.commands = commands
         self.speed = 10
         host = "127.0.0.1"
         port = 8889

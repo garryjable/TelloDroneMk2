@@ -11,11 +11,17 @@ class DroneSimulator {
     -num _port
     -tuple _drone
     -obj _socket
+    commands
     +__init__(str host, num port)
     +__del__()
     +close_socket()
-    +listen_for_command()
+    +start_reporting()
+    +report_status()
+    +stop_reporting()
+    +start_listening()
     +handle_command()
+    + various command handlers (can be substituted with anything)
+
 }
 
 class DroneMonitor {
@@ -23,7 +29,10 @@ class DroneMonitor {
     -num _port
     -tuple _drone
     -obj _socket
+    +close_socket()
+    +start_listening()
     +listen_for_status()
+    +stop1_listening()
 }
 
 class DroneStatusStore {
@@ -31,7 +40,7 @@ class DroneStatusStore {
     +get_latest_status
     +update_latest_status
     +get_latest_status_dict
-    +update_latest_status_dict
+    +update_latest_status_with_dict
 }
 
 

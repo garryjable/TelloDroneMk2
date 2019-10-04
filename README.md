@@ -1,5 +1,5 @@
 
-Tello drone project, strategy pattern, python.
+Tello drone project, python.
 
 
 # Getting Started 
