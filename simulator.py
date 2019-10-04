@@ -19,7 +19,7 @@ class DroneSimulator:
         self.speed = 10
         host = "127.0.0.1"
         port = 8889
-        status_host = "0.0.0.0"
+        status_host = "127.0.0.1"
         status_port = 8890
         self.status_store = DroneStatusStore()
         self.thread = None
@@ -31,7 +31,7 @@ class DroneSimulator:
         self._socket.settimeout(15)
 
         self._status_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._status_socket.bind(self.status_addr)
+        self._status_socket.bind((host,8895))
         self._status_socket.settimeout(15)
 
         self.start_reporting()
@@ -40,11 +40,13 @@ class DroneSimulator:
 
     def close_socket(self):
         self._socket.close()
+        self._status_socket.close()
 
     def __del__(self):
         self.stop_reporting()
         try:
             self._socket.close()
+            self._status_socket.close()
         except AttributeError:
             return
 
@@ -54,9 +56,16 @@ class DroneSimulator:
         return self.report_thread
 
     def report_status(self):
+        start = time.time()
+        latest_status_dict = self.status_store.get_latest_status_dict()
+        latest_status_dict['time'] = 0
+        self.status_store.update_latest_status_with_dict(latest_status_dict)
         while getattr(self.report_thread, "do_run", True):
+            latest_status_dict = self.status_store.get_latest_status_dict()
+            latest_status_dict['time'] = int(time.time() - start)
+            self.status_store.update_latest_status_with_dict(latest_status_dict)
             latest_status = self.status_store.get_latest_status()
-            self._socket.sendto(latest_status.encode(), self.status_addr)
+            self._status_socket.sendto(latest_status.encode(), self.status_addr)
             time.sleep(.1)
 
     def stop_reporting(self):
@@ -77,10 +86,9 @@ class DroneSimulator:
                 return
             else:
                 print("message from: " + str(addr))
-                print("from connect user: " + str(data.decode()))
+                print("recieved command: " + str(data.decode()))
                 data = str(data.decode())
                 args = data.split(" ")
-                print('here be args')
                 print(args)
                 try:
                     response = self.commands[args[0]](args)
@@ -146,44 +154,51 @@ class DroneSimulator:
         return "ok"
 
 
-# class DroneMonitor:
-#    _host = "127.0.0.1"
-#    #    _host = '192.168.10.1'
-#    _port = 8891
-#
-#    def __init__(self, host=None, port=None):
-#        local_host = ""
-#        if host:
-#            self._host = host
-#        if port:
-#            self._port = port
-#        self._drone = (self._host, self._port)
-#        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#        self._socket.bind((local_host, self._port + 1))
-#        return
-#
-#    def close_socket(self):
-#        self._socket.close()
-#
-#    def __del__(self):
-#        try:
-#            self._socket.close()
-#        except AttributeError as e:
-#            return
-#
-#    def listen_for_status_update(self, mission):
-#        #print("Server Started")
-#        #while True:
-#        #    data, addr = s.recvfrom(1024)
-#        #    print("message from: " + str(addr))
-#        #    print("from connect user: " + str(data.decode()))
-#        #    data = str(data.decode()))
-#        #    args = data.split(' ')
-#        #    try:
-#        #        response = commands[args[0]](args)
-#        #    except:
-#        #        response = "error"
-#        #    print("sending: " + str(response))
-#        #    s.sendto(data.encode(), addr)
-#        #s.close()
-#        print("listening")
+class DroneMonitor:
+    _host = "127.0.0.1"
+    _port = 8892
+
+    def __init__(self, host=None, port=None):
+        local_host = ""
+        if host:
+            self._host = host
+        if port:
+            self._port = port
+        self.status_port = 8890
+        self.status_store = DroneStatusStore()
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket.bind((local_host, self.status_port))
+        self._socket.settimeout(15)
+        self.start_listening()
+        return
+
+    def close_socket(self):
+        self._socket.close()
+
+    def __del__(self):
+        self.stop_listening()
+        try:
+            self._socket.close()
+        except AttributeError as e:
+            return
+
+    def start_listening(self):
+        self.thread = threading.Thread(target=self.listen_for_status)
+        self.thread.start()
+        return self.thread
+
+    def listen_for_status(self):
+        while getattr(self.thread, "do_run", True):
+            try:
+                status, addr = self._socket.recvfrom(1024)
+            except socket.timeout:
+                print("lost connection")
+                return
+            else:
+                self.status_store.update_latest_status(status.decode())
+
+    def stop_listening(self):
+        self.thread.do_run = False
+        self.thread.join()
+
+

@@ -1,6 +1,8 @@
 # import test_server
-from models import MissionFactory, MissionLibrary, DroneStatusStore, DroneDispatcher, SlowMission, FastMission, VerboseFastMission
-from simulator import DroneSimulator
+from models import ( 
+        MissionFactory, MissionLibrary,  DroneStatusStore,
+        DroneDispatcher, SlowMission, FastMission, VerboseFastMission)
+from simulator import DroneSimulator, DroneMonitor
 import unittest
 import socket
 import time
@@ -32,15 +34,14 @@ class DroneDispatcherTests(unittest.TestCase):
     def test_send_drone_on_mission(self):
         self.drone_simulator = DroneSimulator()
         self.drone_simulator.start_listening()
-        self.drone_simulator.start_reporting()
         response = self.dispatcher.send_drone_on_mission(self.missions["1"])
         self.assertEqual(response, "you flew mission 1")
         print("waiting for drone simulator to time out")
         for i in range(15,0, -1):
             print(i)
             time.sleep(1)
-        self.drone_simulator.stop_listening()
         self.drone_simulator.stop_reporting()
+        self.drone_simulator.stop_listening()
         self.drone_simulator.close_socket()
 
     def tearDown(self):
@@ -116,7 +117,7 @@ class MissionLibraryTests(unittest.TestCase):
         self.library.add_missions(more_missions)
 
 
-class droneStatusStoreTests(unittest.TestCase):
+class DroneStatusStoreTests(unittest.TestCase):
     def setUp(self):
         self.initial_status = "pitch:0;roll:0;yaw:0;vgx:0;vgy:0;vgz:0;templ:0;temph:0;tof:0;h:0;bat:100;baro:0.00;time:0;agx:0.00;agy:0.00;agz:0.00;\r\n"
         self.initial_status_dict = {
@@ -159,3 +160,24 @@ class droneStatusStoreTests(unittest.TestCase):
         self.status_store.update_latest_status_with_dict(status_dict)
         latest_status_dict = self.status_store.get_latest_status_dict()
         self.assertEqual(latest_status_dict, status_dict)
+
+class DroneMonitorTests(unittest.TestCase):
+
+    def test_listen_for_status(self):
+        self.host = "127.0.0.1"
+        self.drone_port = 8891
+        mission_factory = MissionFactory()
+        self.missions = mission_factory.create_missions(mission_data)
+        self.drone_simulator = DroneSimulator()
+        self.drone_simulator.start_listening()
+        self.drone_monitor = DroneMonitor()
+        self.dispatcher = DroneDispatcher(self.host, self.drone_port)
+        response = self.dispatcher.send_drone_on_mission(self.missions["1"])
+        self.drone_simulator.stop_reporting()
+        self.drone_simulator.stop_listening()
+        self.drone_monitor.stop_listening()
+        latest_status_dict = self.drone_monitor.status_store.get_latest_status_dict()
+        self.assertNotEqual(0, latest_status_dict['time'])
+        self.dispatcher.close_socket()
+        self.drone_monitor.close_socket()
+        self.drone_simulator.close_socket()

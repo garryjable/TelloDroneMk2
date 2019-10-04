@@ -136,7 +136,7 @@ class DroneStatusStore:
                     print("bad")
                     pass
             except ValueError:
-                print("terrible")
+                # this is the newline at the end of the status
                 pass
 
     def get_latest_status_dict(self):
@@ -151,7 +151,7 @@ class DroneStatusStore:
                     print("bad")
                     pass
         except ValueError:
-            print("terrible")
+            # this is caused by the newline at the end of status
             pass
 
 
