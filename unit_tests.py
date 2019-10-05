@@ -81,14 +81,49 @@ class MissionFactoryTests(unittest.TestCase):
             elif isinstance(mission, FastMission):
                 mission_type = 'fast'
             elif isinstance(mission, VerboseFastMission):
-                mission_type = 'fastverbose'
+                mission_type = 'verbosefast'
+            self.assertEqual(mission_type, mission_data.data[index]['type'])
             index += 1
 
     def test_create_missions_from_json(self):
-        print("stuff")
+        import json
+        f = open("mission_data.json", 'r')
+        json_data = json.load(f)
+        mission_factory = MissionFactory()
+        missions = mission_factory.create_missions_from_file("mission_data.json")
+        index = 0
+        for mission_name, mission in missions.items():
+            self.assertEqual(mission_name, json_data['data'][index]['name'])
+            if isinstance(mission, SlowMission):
+                mission_type = 'slow'
+            elif isinstance(mission, FastMission):
+                mission_type = 'fast'
+            elif isinstance(mission, VerboseFastMission):
+                mission_type = 'verbosefast'
+            self.assertEqual(mission_type, json_data['data'][index]['type'])
+            index += 1
 
     def test_create_missions_from_csv(self):
-        print("stuff")
+        import csv
+        rows = []
+        with open("mission_data.csv", "r") as csvfile:
+            mission_data_reader = csv.reader(csvfile, delimiter=",")
+            for row in mission_data_reader:
+                rows.append(row)
+        rows.pop(0)
+        mission_factory = MissionFactory()
+        missions = mission_factory.create_missions_from_file("mission_data.csv")
+        index = 0
+        for mission_name, mission in missions.items():
+            self.assertEqual(mission_name, rows[index][0])
+            if isinstance(mission, SlowMission):
+                mission_type = 'slow'
+            elif isinstance(mission, FastMission):
+                mission_type = 'fast'
+            elif isinstance(mission, VerboseFastMission):
+                mission_type = 'verbosefast'
+            self.assertEqual(mission_type, rows[index][2])
+            index += 1
 
 
 class MissionFlyerTests(unittest.TestCase):
