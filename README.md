@@ -33,6 +33,8 @@ to install run `pip install pytest-cov`
 
 to run the following in the root of the directory `pytest --cov=. unit_test.py`
 
+note none of the command line interface (Menu class)
+
 # UML 
 
 UML is generated from the \*.txt in the diagrams directory via plantuml
