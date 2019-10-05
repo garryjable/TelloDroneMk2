@@ -27,6 +27,12 @@ then `pytest unit_tests.py`
 
 the test will automatically spawn a drone simulator in the background to respond to the requests.
 
+for test coverage you can use `pytest-cov`
+
+to install run `pip install pytest-cov`
+
+to run the following in the root of the directory `pytest --cov=. unit_test.py`
+
 # UML 
 
 UML is generated from the \*.txt in the diagrams directory via plantuml

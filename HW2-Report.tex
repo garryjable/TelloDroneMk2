@@ -28,9 +28,35 @@
       \centerline{\textbf{Design Insights}} \par
 \endgroup
 
-During this phase I would argue that I have successfully implemented the requirements 1, 2, 5, 7, 8, 10, 11
+Grader Notes
 
-Item three I am really close, I really track all the status and have done all the ground work but still haven't added the position estimate.
+During this phase I have tried to implemented the requirements 1, 2, 3, 5, 7, 8, 10, 11
+While I have worked very hard to get to the state I am at and have made alot of progress toward each point.
+I'm going to be as honest and specific as possible to help grades be as easy as possible
+
+\begin{itemize}
+    \item 1.1 Drone simulator writes the drone status to port 8890 at 10 hz in the background via thread, currently doesn't start once in command mode for simulator
+    \item 1.2 DroneMonitor is successfully reading status 
+    \item 2.1 Currently not implemented, but as all the status is there It wouldn't be hard to add. All the ground work is there.
+    \item 2.2 Currently not implemented, but as all the status is there It wouldn't be hard to add. All the ground work is there.
+    \item 2.3 Currently not implemented, but as all the status is there It wouldn't be hard to add. All the ground work is there.
+    \item 3.1 Currently not implemented, but would be a simple change to the DroneStatusStore. All the ground work is there.
+    \item 3.2 Currently not implemented, but would be a simple change to the DroneStatusStore. All the ground work is there.
+    \item 5.1 Yes can load from a file, this is currently managed in the MissionFactory class
+    \item 5.2 Supported file types are .json .csv and .py (note missing full unit tests on this)
+    \item 7 None of the specifics of this requirement have been implemented, but I have implemented Mission Type classes, you could any mission type to support these features or any sort of behavior, 
+     miss  types could be created to support any arbitrary behavior
+    \item 8 This one is really close, I would argue that is done enough to pass the requirement. The drone simulator handles commands based on a dictionary of lambdas, you could pass it any dictionary
+    with   behavior for any command, as long as the function manages its own parameters. I just want to pull the action handling functions out of the DroneSimulator class to call this one totally complete
+    \item 10 If I understand this one correctly, I have the DroneStatusStore which handles message serialization and validation this is use by both sides of communication
+    \item 10.1 This one is a little abstract, not sure if I understand it, DroneStatusStore handles status messages, has functions for making changing status easier.
+    \item 11 Again this is the DroneStatusStore, responsible for status messages and storing status
+    \item 11.1 Can be used by both the DroneDispatcher and DroneSimulator
+\end{itemize}
+
+
+Experience Summary 
+
 
 I first started fixing the things that I feel I did poorly during the homework 1 phase, by completely overhauling my Menu class. Adding a Mission Flyer that is a better implementation of strategy pattern 
 and changing my Mission types to be a proper template pattern rather than the wierd pseudo strategy pattern they were before.
