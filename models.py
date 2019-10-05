@@ -95,6 +95,11 @@ class MissionFlyer:
 class DroneStatusStore:
 
     def __init__(self, missions=None):
+        self.approx_position = {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                }
         self._latest_status = {
             "pitch": 0,
             "roll": 0,
@@ -113,6 +118,18 @@ class DroneStatusStore:
             "agy": 0.00,
             "agz": 0.00,
         }
+
+    def adjust_approx_position(self, x, y, z):
+        self.approx['x'] += x
+        self.approx['y'] += x
+        self.approx['z'] += x
+
+    def reset_approx_position(self):
+        self.approx_position = {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                }
 
     def get_latest_status(self):
         status_message = ""
