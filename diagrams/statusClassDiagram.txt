@@ -19,8 +19,7 @@ class DroneSimulator {
     +report_status()
     +stop_reporting()
     +start_listening()
-    +handle_command()
-    + various command handlers (can be substituted with anything)
+    +base_handle_command()
 
 }
 
@@ -42,6 +41,5 @@ class DroneStatusStore {
     +get_latest_status_dict
     +update_latest_status_with_dict
 }
-
 
 @enduml

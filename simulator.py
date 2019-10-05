@@ -93,7 +93,7 @@ class DroneSimulator:
                 args = data.split(" ")
                 print(args)
                 try:
-                    response = self.commands[args[0]](args, self.handleBaseMovement)
+                    response = self.commands[args[0]](args, self.handle_base_movement)
                 except AttributeError as e:
                     print(e)
                     response = "error"
@@ -104,7 +104,7 @@ class DroneSimulator:
         self.thread.do_run = False
         self.thread.join()
 
-    def handleBaseMovement(self, axis, direction, distance):
+    def handle_base_movement(self, axis, direction, distance):
         status = self.status_store.get_latest_status_dict()
         status[axis] = direction * self.speed
         self.status_store.update_latest_status_with_dict(status)
@@ -116,45 +116,45 @@ class DroneSimulator:
         return "ok"
 
 
-def handleCommand(args, handleBaseMovement):
+def handleCommand(args, handle_base_movement):
     return "ok"
 
-def handleTakeoff(args, handleBaseMovement):
+def handleTakeoff(args, handle_base_movement):
     distance = 50
     axis = 'vgz'
     direction = 1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
-def handleLand(args, handleBaseMovement):
+def handleLand(args, handle_base_movement):
     status = self.status_store.get_latest_status_dict()
     distance = int(status['h'])
     axis = 'vgz'
     direction = -1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
-def handleUp( args, handleBaseMovement):
+def handleUp( args, handle_base_movement):
     distance = int(args[1])
     axis = 'vgz'
     direction = 1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
-def handleRight(args, handleBaseMovement):
+def handleRight(args, handle_base_movement):
     distance = int(args[1])
     axis = 'vgx'
     direction = 1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
-def handleDown(args, handleBaseMovement):
+def handleDown(args, handle_base_movement):
     distance = int(args[1])
     axis = 'vgz'
     direction = -1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
-def handleLeft(args, handleBaseMovement):
+def handleLeft(args, handle_base_movement):
     distance = int(args[1])
     axis = 'vgx'
     direction = -1
-    return handleBaseMovement(axis, direction, distance)
+    return handle_base_movement(axis, direction, distance)
 
 
 class DroneMonitor:

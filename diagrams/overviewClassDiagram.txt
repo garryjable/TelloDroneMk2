@@ -9,7 +9,7 @@ FastMission ..|> Mission
 SlowMission ..|> Mission
 VerboseFastMission ..|> Mission
 
-class Menuer {
+class Menu {
     +init(function_list)
     -_list_missions()
     -_load_missions()

@@ -46,8 +46,8 @@ I'm going to be as honest and specific as possible to help grades be as easy as 
     \item 5.2 Supported file types are .json .csv and .py
     \item 7 None of the specifics of this requirement have been implemented, but I have implemented Mission Type classes, you could have any mission type to support these features or any sort of behavior, 
      miss  types could be created to support any arbitrary behavior
-    \item 8 This one is really close, I would argue that is done enough to pass the requirement. The drone simulator handles commands based on a dictionary of lambdas, you could pass it any dictionary
-    with   behavior for any command, as long as the function manages its own parameters. I just want to pull the action handling functions out of the DroneSimulator class to call this one totally complete
+    \item 8 The drone simulator handles commands based on a dictionary of lambdas, you could pass it any dictionary
+    with behavior for any command you define, as long as the function manages its own parameters.
     \item 10 If I understand this one correctly, I have the DroneStatusStore which handles message serialization and validation this is use by both sides of communication
     \item 10.1 This one is a little abstract, not sure if I understand it, DroneStatusStore handles status messages, has functions for making changing status easier.
     \item 11 Again this is the DroneStatusStore, responsible for status messages and storing status
